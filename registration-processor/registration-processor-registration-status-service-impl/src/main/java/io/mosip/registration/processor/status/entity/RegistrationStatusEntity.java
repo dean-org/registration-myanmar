@@ -140,6 +140,12 @@ public class RegistrationStatusEntity extends BaseRegistrationEntity<BaseRegistr
 	@Column(name = "last_success_stage_name")
 	private String lastSuccessStageName;
 
+	@Column(name = "needs_notification")
+	private Boolean needsNotification;
+	
+	@Column(name = "notification_sent")
+	private Boolean notificationSent;
+
 	/**
 	 * Instantiates a new registration status entity.
 	 */
