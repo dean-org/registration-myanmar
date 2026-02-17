@@ -215,6 +215,14 @@ public class MessageDTO implements Serializable {
 		this.workflowInstanceId = workflowInstanceId;
 	}
 
+	public Map<String, String> getNotificationAttributes() {
+		return notificationAttributes;
+	}
+
+	public void setNotificationAttributes(Map<String, String> notificationAttributes) {
+		this.notificationAttributes = notificationAttributes;
+	}
+	
 	@Override
 	public String toString() {
 		String msgBusAddress=null;
