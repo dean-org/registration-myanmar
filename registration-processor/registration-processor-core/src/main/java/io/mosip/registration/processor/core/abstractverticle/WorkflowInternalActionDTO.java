@@ -2,6 +2,7 @@ package io.mosip.registration.processor.core.abstractverticle;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -45,6 +46,8 @@ public class WorkflowInternalActionDTO extends MessageDTO implements Serializabl
 
 	/** The workflow instance id */
 	private String workflowInstanceId;
+
+	private Map<String, String> notificationAttributes;
 
 	/*
 	 * (non-Javadoc)
@@ -204,6 +207,14 @@ public class WorkflowInternalActionDTO extends MessageDTO implements Serializabl
 		return workflowInstanceId;
 	}
 
+	public Map<String, String> getNotificationAttributes() {
+		return notificationAttributes;
+	}
+
+	public void setNotificationAttributes(Map<String, String> notificationAttributes) {
+		this.notificationAttributes = notificationAttributes;
+	}
+	
 	/**
 	 * Sets the workflow instance id.
 	 *
