@@ -30,6 +30,9 @@ public enum NotificationStageStatus {
 	
 	PACKET_REJECTED,
 
+	MA_PACKET_REJECTED,
+
 	PACKET_FAILED;
 
 }
+
