@@ -664,8 +664,9 @@ public class RegistrationStatusEntity extends BaseRegistrationEntity<BaseRegistr
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, regId, registrationType, iteration, referenceRegistrationId, source, statusCode, langCode, statusComment, latestRegistrationTransactionId, isActive, createdBy, createDateTime, updatedBy, updateDateTime, isDeleted, deletedDateTime, retryCount, applicantType, latestTransactionTypeCode, latestTransactionStatusCode, latestTransactionTimes, registrationStageName, regProcessRetryCount, resumeTimeStamp, defaultResumeAction, pauseRuleIds, lastSuccessStageName);
+		return Objects.hash(id, regId, registrationType, iteration, referenceRegistrationId, source, statusCode, langCode, statusComment, latestRegistrationTransactionId, isActive, createdBy, createDateTime, updatedBy, updateDateTime, isDeleted, deletedDateTime, retryCount, applicantType, latestTransactionTypeCode, latestTransactionStatusCode, latestTransactionTimes, registrationStageName, regProcessRetryCount, resumeTimeStamp, defaultResumeAction, pauseRuleIds, lastSuccessStageName, needsNotification, notificationSent);
 	}
 }
+
 
 
