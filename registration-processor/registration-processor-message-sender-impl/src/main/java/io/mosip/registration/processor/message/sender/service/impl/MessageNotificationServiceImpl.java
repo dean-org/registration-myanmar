@@ -451,6 +451,10 @@ public class MessageNotificationServiceImpl
 		if (idType.toString().equalsIgnoreCase(UIN)) {
 			JSONObject jsonObject = utility.idrepoRetrieveIdentityByRid(id);
 			uin = JsonUtil.getJSONValue(jsonObject, UIN);
+			String uid = (jsonObject != null && JsonUtil.getJSONValue(jsonObject, "UID") != null)
+						? JsonUtil.getJSONValue(jsonObject, "UID")
+						: "";
+			attributes.put("UID", uid)
 			attributes.put("RID", id);
 			attributes.put("UIN", uin);
 			attributes.put("VID", getVid(uin));
@@ -745,3 +749,4 @@ public class MessageNotificationServiceImpl
 		return vid;
 	}
 	}
+
