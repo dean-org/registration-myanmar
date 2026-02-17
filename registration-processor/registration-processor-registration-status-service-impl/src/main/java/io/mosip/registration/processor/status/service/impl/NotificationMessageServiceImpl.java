@@ -16,7 +16,7 @@ import io.mosip.registration.processor.status.entity.NotificationMessageEntity;
 import io.mosip.registration.processor.status.repositary.NotificationMessageRepository;
 import io.mosip.registration.processor.status.service.NotificationMessageService;
 
-@Component
+@Service
 public class NotificationMessageServiceImpl implements NotificationMessageService {
 
 	@Autowired
