@@ -645,6 +645,22 @@ public class InternalRegistrationStatusDto implements Serializable {
 		this.workflowInstanceId = workflowInstanceId;
 	}
 
+	public Boolean getNeedsNotification() {
+		return needsNotification;
+	}
+
+	public void setNeedsNotification(Boolean needsNotification) {
+		this.needsNotification = needsNotification;
+	}
+
+	public Boolean getNotificationSent() {
+		return notificationSent;
+	}
+
+	public void setNotificationSent(Boolean notificationSent) {
+		this.notificationSent = notificationSent;
+	}
+
 	@Override
 	public String toString() {
 		return "InternalRegistrationStatusDto [registrationId=" + registrationId + ", registrationType="
