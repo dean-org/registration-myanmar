@@ -162,6 +162,8 @@ public interface RegistrationStatusService<T, U, D> {
 
 	public void updateRegistrationStatusForWorkflow(U registrationStatusDto, String moduleId, String moduleName);
 
+	public List<InternalRegistrationStatusDto> getUnNotifiedPackets(Integer fetchSize, List<String> statusCodes);
+
 	public List<InternalRegistrationStatusDto> getResumablePackets(Integer fetchSize);
 
 }
