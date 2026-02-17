@@ -647,9 +647,9 @@ public class NotificationServiceImpl implements NotificationService {
 			} else {
 				type = map.getTemplateType(object.getErrorCode());
 
-				if (NotificationTemplateType.TECHNICAL_ISSUE.equals(type) &&
-						object.getNotificationAttributes() != null && !object.getNotificationAttributes().isEmpty()) {
-					type = NotificationTemplateType.TECHNICAL_ISSUE_WITH_ERROR;
+				// if (NotificationTemplateType.TECHNICAL_ISSUE.equals(type) &&
+				// 		object.getNotificationAttributes() != null && !object.getNotificationAttributes().isEmpty()) {
+				// 	type = NotificationTemplateType.TECHNICAL_ISSUE_WITH_ERROR;
 				}
 			}
 			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
@@ -771,6 +771,7 @@ public class NotificationServiceImpl implements NotificationService {
 	}
 
 }
+
 
 
 
