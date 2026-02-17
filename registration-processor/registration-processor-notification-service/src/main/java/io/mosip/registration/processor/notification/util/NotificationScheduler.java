@@ -209,8 +209,8 @@ public class NotificationScheduler {
 		registrationStatusEntity.setLatestTransactionTimes(dto.getLatestTransactionTimes());
 		registrationStatusEntity.setResumeTimeStamp(dto.getResumeTimeStamp());
 		registrationStatusEntity.setDefaultResumeAction(dto.getDefaultResumeAction());
-		registrationStatusEntity.setNeedsNotification(dto.getNeedsNotification());
-		registrationStatusEntity.setNotificationSent(dto.getNotificationSent());
+		// registrationStatusEntity.setNeedsNotification(dto.getNeedsNotification());
+		// registrationStatusEntity.setNotificationSent(dto.getNotificationSent());
 		return registrationStatusEntity;
 	}
 }
