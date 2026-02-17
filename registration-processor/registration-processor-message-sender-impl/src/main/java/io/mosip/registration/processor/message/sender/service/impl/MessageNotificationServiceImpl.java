@@ -454,7 +454,7 @@ public class MessageNotificationServiceImpl
 			String uid = (jsonObject != null && JsonUtil.getJSONValue(jsonObject, "UID") != null)
 						? JsonUtil.getJSONValue(jsonObject, "UID")
 						: "";
-			attributes.put("UID", uid)
+			attributes.put("UID", uid);
 			attributes.put("RID", id);
 			attributes.put("UIN", uin);
 			attributes.put("VID", getVid(uin));
@@ -749,4 +749,5 @@ public class MessageNotificationServiceImpl
 		return vid;
 	}
 	}
+
 
