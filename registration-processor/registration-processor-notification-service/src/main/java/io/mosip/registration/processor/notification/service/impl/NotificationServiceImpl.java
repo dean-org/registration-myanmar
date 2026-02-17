@@ -93,6 +93,7 @@ public class NotificationServiceImpl implements NotificationService {
 	private static final String DUPLICATE_UIN=NOTIFICATION_TEMPLATE_CODE+"duplicate.uin.";
 	private static final String TECHNICAL_ISSUE=NOTIFICATION_TEMPLATE_CODE+"technical.issue.";
 	private static final String PAUSED_FOR_ADDITIONAL_INFO=NOTIFICATION_TEMPLATE_CODE+"paused.for.additional.info.";
+	private static final String MA_PACKET_REJECTED = NOTIFICATION_TEMPLATE_CODE + "ma.packet.rejected.";
 
 
 	/** The core audit request builder. */
@@ -499,6 +500,12 @@ public class NotificationServiceImpl implements NotificationService {
 			messageSenderDto.setIdType(IdType.RID);
 			messageSenderDto.setSubjectCode(env.getProperty(TECHNICAL_ISSUE+SUB));
 			break;
+		case MA_PACKET_REJECTED:
+			messageSenderDto.setSmsTemplateCode(env.getProperty(MA_PACKET_REJECTED + SMS));
+			messageSenderDto.setEmailTemplateCode(env.getProperty(MA_PACKET_REJECTED + EMAIL));
+			messageSenderDto.setIdType(IdType.RID);
+			messageSenderDto.setSubjectCode(env.getProperty(MA_PACKET_REJECTED + SUB));
+			break;
 		default:
 			break;
 		}
@@ -629,3 +636,4 @@ public class NotificationServiceImpl implements NotificationService {
 	}
 
 }
+
