@@ -50,6 +50,8 @@ public class StatusNotificationTypeMapUtil {
 		statusMap.put(NotificationStageStatus.PACKET_REJECTED,
 				NotificationTemplateType.TECHNICAL_ISSUE);
 		statusMap.put(NotificationStageStatus.PACKET_FAILED, NotificationTemplateType.TECHNICAL_ISSUE);
+		statusMap.put(NotificationStageStatus.MA_PACKET_REJECTED,
+				NotificationTemplateType.MA_PACKET_REJECTED);
 		return unmodifiableMap;
 	}
 
@@ -67,3 +69,4 @@ public class StatusNotificationTypeMapUtil {
 	}
 
 }
+
