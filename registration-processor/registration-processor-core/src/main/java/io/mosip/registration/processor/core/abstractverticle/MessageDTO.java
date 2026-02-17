@@ -42,6 +42,8 @@ public class MessageDTO implements Serializable {
 
 	private String workflowInstanceId;
 
+	private Map<String, String> notificationAttributes;
+
 	/**
 	 * Instantiates a new message DTO.
 	 */
