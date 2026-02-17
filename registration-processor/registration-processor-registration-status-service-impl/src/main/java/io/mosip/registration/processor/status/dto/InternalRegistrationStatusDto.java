@@ -108,6 +108,10 @@ public class InternalRegistrationStatusDto implements Serializable {
 
 	private String workflowInstanceId;
 
+	private Boolean needsNotification;
+	
+	private Boolean notificationSent;
+
 	/**
 	 * Gets the ref id.
 	 *
