@@ -68,6 +68,8 @@ import io.mosip.registration.processor.notification.service.NotificationService;
 import io.mosip.registration.processor.notification.util.StatusNotificationTypeMapUtil;
 import io.mosip.registration.processor.rest.client.audit.builder.AuditLogRequestBuilder;
 import io.mosip.registration.processor.status.code.RegistrationType;
+import io.mosip.registration.processor.status.entity.RegistrationStatusEntity;
+import io.mosip.registration.processor.status.repositary.RegistrationRepositary;
 
 /**
  * The contains business logic for selecting template based on metadata and sending notification 
@@ -84,6 +86,7 @@ public class NotificationServiceImpl implements NotificationService {
 	private static final String EMAIL="email";
 	private static final String SMS="sms";
 	private static final String SUB="sub";
+	private String regId="";
 	private static final String LOST_UIN=NOTIFICATION_TEMPLATE_CODE+"lost.uin.";
 	private static final String UIN_CREATED=NOTIFICATION_TEMPLATE_CODE+"uin.created.";
 	private static final String UIN_NEW=NOTIFICATION_TEMPLATE_CODE+"uin.new.";
@@ -93,6 +96,7 @@ public class NotificationServiceImpl implements NotificationService {
 	private static final String DUPLICATE_UIN=NOTIFICATION_TEMPLATE_CODE+"duplicate.uin.";
 	private static final String TECHNICAL_ISSUE=NOTIFICATION_TEMPLATE_CODE+"technical.issue.";
 	private static final String PAUSED_FOR_ADDITIONAL_INFO=NOTIFICATION_TEMPLATE_CODE+"paused.for.additional.info.";
+	private static final String MA_PACKET_REJECTED = NOTIFICATION_TEMPLATE_CODE+"ma.packet.rejected.";
 
 
 	/** The core audit request builder. */
@@ -142,6 +146,9 @@ public class NotificationServiceImpl implements NotificationService {
 	private SubscriptionClient<SubscriptionChangeRequest,UnsubscriptionRequest, SubscriptionChangeResponse> sb;
 
 	@Autowired
+	private RegistrationRepositary<RegistrationStatusEntity, ?> registrationRepositary;
+
+	@Autowired
 	private Environment env;
 
 	// sends init subscribe req to hub
@@ -170,6 +177,7 @@ public class NotificationServiceImpl implements NotificationService {
 		LogDescription description = new LogDescription();
 		MessageSenderDto messageSenderDto = new MessageSenderDto();
 		String id = object.getInstanceId();
+		regId=id;
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
 				"MessageSenderStage::process()::entry");
 	
@@ -494,11 +502,46 @@ public class NotificationServiceImpl implements NotificationService {
 			messageSenderDto.setSubjectCode(env.getProperty(DUPLICATE_UIN+SUB));
 			break;
 		case TECHNICAL_ISSUE:
-			messageSenderDto.setSmsTemplateCode(env.getProperty(TECHNICAL_ISSUE+SMS));
-			messageSenderDto.setEmailTemplateCode(env.getProperty(TECHNICAL_ISSUE+EMAIL));
-			messageSenderDto.setIdType(IdType.RID);
-			messageSenderDto.setSubjectCode(env.getProperty(TECHNICAL_ISSUE+SUB));
-			break;
+				List<Object[]> statusDetails =
+						registrationRepositary.getStatusAndStageByRegId(regId);
+				if (statusDetails == null || statusDetails.isEmpty()) {
+					regProcLogger.info(
+							LoggerFileConstant.SESSIONID.toString(),
+							LoggerFileConstant.REGISTRATIONID.toString(),
+							regId,
+							"No DB record found for regId"
+					);
+				} else {
+					String statusCode = String.valueOf(statusDetails.get(0)[0]).trim();
+					String stageName  = String.valueOf(statusDetails.get(0)[1]).trim();
+					regProcLogger.info(
+							LoggerFileConstant.SESSIONID.toString(),
+							LoggerFileConstant.REGISTRATIONID.toString(),
+							regId,
+							"DB Values -> statusCode: " + statusCode +
+									" | stageName: " + stageName
+					);
+					if ("REJECTED".equalsIgnoreCase(statusCode)
+							&& "ManualAdjudicationStage".equalsIgnoreCase(stageName)) {
+						regProcLogger.info(
+								LoggerFileConstant.SESSIONID.toString(),
+								LoggerFileConstant.REGISTRATIONID.toString(),
+								regId,
+								"MA_PACKET_REJECTED condition matched"
+						);
+						messageSenderDto.setSmsTemplateCode(env.getProperty(MA_PACKET_REJECTED + SMS));
+						messageSenderDto.setEmailTemplateCode(env.getProperty(MA_PACKET_REJECTED + EMAIL));
+						messageSenderDto.setIdType(IdType.RID);
+						messageSenderDto.setSubjectCode(env.getProperty(MA_PACKET_REJECTED + SUB));
+						break;
+					}
+				}
+				// Fallback
+				messageSenderDto.setSmsTemplateCode(env.getProperty(TECHNICAL_ISSUE + SMS));
+				messageSenderDto.setEmailTemplateCode(env.getProperty(TECHNICAL_ISSUE + EMAIL));
+				messageSenderDto.setIdType(IdType.RID);
+				messageSenderDto.setSubjectCode(env.getProperty(TECHNICAL_ISSUE + SUB));
+				break;
 		default:
 			break;
 		}
@@ -636,4 +679,5 @@ public class NotificationServiceImpl implements NotificationService {
 	}
 
 }
+
 
