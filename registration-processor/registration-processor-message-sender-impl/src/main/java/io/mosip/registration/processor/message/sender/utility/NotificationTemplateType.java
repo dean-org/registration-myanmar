@@ -20,6 +20,9 @@ public enum NotificationTemplateType {
 	TECHNICAL_ISSUE,
 	
 	/** THe Lost UIN. */
-	LOST_UIN
+	LOST_UIN,
+
+	MA_PACKET_REJECTED
 
 }
+
