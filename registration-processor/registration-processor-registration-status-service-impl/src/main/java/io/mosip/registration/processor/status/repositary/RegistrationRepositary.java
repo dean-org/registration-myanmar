@@ -61,5 +61,10 @@ public interface RegistrationRepositary<T extends BaseRegistrationEntity, E> ext
 
 	@Query(value ="SELECT * FROM registration r WHERE r.status_code =:statusCode  order by r.upd_dtimes LIMIT :fetchSize ", nativeQuery = true)
 	public List<RegistrationStatusEntity> getResumablePackets(@Param("statusCode") String statusCode,@Param("fetchSize") Integer fetchSize);
+
+	@Query(value = "SELECT r.status_code, r.reg_stage_name FROM registration r WHERE r.reg_id = :regId",
+			nativeQuery = true)
+	public List<Object[]> getStatusAndStageByRegId(@Param("regId") String regId);
 }
+
 
