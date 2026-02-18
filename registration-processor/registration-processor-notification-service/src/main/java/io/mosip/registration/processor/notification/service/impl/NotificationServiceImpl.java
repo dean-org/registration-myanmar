@@ -502,46 +502,74 @@ public class NotificationServiceImpl implements NotificationService {
 			messageSenderDto.setSubjectCode(env.getProperty(DUPLICATE_UIN+SUB));
 			break;
 		case TECHNICAL_ISSUE:
-				List<Object[]> statusDetails =
-						registrationRepositary.getStatusAndStageByRegId(regId);
-				if (statusDetails == null || statusDetails.isEmpty()) {
-					regProcLogger.info(
-							LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(),
-							regId,
-							"No DB record found for regId"
-					);
-				} else {
-					String statusCode = String.valueOf(statusDetails.get(0)[0]).trim();
-					String stageName  = String.valueOf(statusDetails.get(0)[1]).trim();
-					regProcLogger.info(
-							LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(),
-							regId,
-							"DB Values -> statusCode: " + statusCode +
-									" | stageName: " + stageName
-					);
-					if ("REJECTED".equalsIgnoreCase(statusCode)
-							&& "ManualAdjudicationStage".equalsIgnoreCase(stageName)) {
-						regProcLogger.info(
-								LoggerFileConstant.SESSIONID.toString(),
-								LoggerFileConstant.REGISTRATIONID.toString(),
-								regId,
-								"MA_PACKET_REJECTED condition matched"
-						);
-						messageSenderDto.setSmsTemplateCode(env.getProperty(MA_PACKET_REJECTED + SMS));
-						messageSenderDto.setEmailTemplateCode(env.getProperty(MA_PACKET_REJECTED + EMAIL));
-						messageSenderDto.setIdType(IdType.RID);
-						messageSenderDto.setSubjectCode(env.getProperty(MA_PACKET_REJECTED + SUB));
-						break;
-					}
-				}
-				// Fallback
-				messageSenderDto.setSmsTemplateCode(env.getProperty(TECHNICAL_ISSUE + SMS));
-				messageSenderDto.setEmailTemplateCode(env.getProperty(TECHNICAL_ISSUE + EMAIL));
-				messageSenderDto.setIdType(IdType.RID);
-				messageSenderDto.setSubjectCode(env.getProperty(TECHNICAL_ISSUE + SUB));
-				break;
+		    // Log entry and RID being used
+		    regProcLogger.info(
+		            LoggerFileConstant.SESSIONID.toString(),
+		            LoggerFileConstant.REGISTRATIONID.toString(),
+		            regId,
+		            "TECHNICAL_ISSUE notification triggered for RID: " + regId
+		    );
+		    // Fetch DB details
+		    List<Object[]> statusDetails =
+		            registrationRepositary.getStatusAndStageByRegId(regId);
+		    regProcLogger.info(
+		            LoggerFileConstant.SESSIONID.toString(),
+		            LoggerFileConstant.REGISTRATIONID.toString(),
+		            regId,
+		            "DB lookup executed for RID: " + regId
+		    );
+		    if (statusDetails == null || statusDetails.isEmpty()) {
+		
+		        regProcLogger.info(
+		                LoggerFileConstant.SESSIONID.toString(),
+		                LoggerFileConstant.REGISTRATIONID.toString(),
+		                regId,
+		                "No DB record found for RID: " + regId
+		        );
+		    } else {
+		        regProcLogger.info(
+		                LoggerFileConstant.SESSIONID.toString(),
+		                LoggerFileConstant.REGISTRATIONID.toString(),
+		                regId,
+		                "DB returned rows count: " + statusDetails.size()
+		        );
+		        String statusCode = String.valueOf(statusDetails.get(0)[0]).trim();
+		        String stageName  = String.valueOf(statusDetails.get(0)[1]).trim();
+		        regProcLogger.info(
+		                LoggerFileConstant.SESSIONID.toString(),
+		                LoggerFileConstant.REGISTRATIONID.toString(),
+		                regId,
+		                "DB Values -> statusCode: " + statusCode +
+		                        " | stageName: " + stageName +
+		                        " | RID: " + regId
+		        );
+		        if ("REJECTED".equalsIgnoreCase(statusCode)
+		                && "ManualAdjudicationStage".equalsIgnoreCase(stageName)) {
+		            regProcLogger.info(
+		                    LoggerFileConstant.SESSIONID.toString(),
+		                    LoggerFileConstant.REGISTRATIONID.toString(),
+		                    regId,
+		                    "MA_PACKET_REJECTED condition matched for RID: " + regId
+		            );
+		            messageSenderDto.setSmsTemplateCode(env.getProperty(MA_PACKET_REJECTED + SMS));
+		            messageSenderDto.setEmailTemplateCode(env.getProperty(MA_PACKET_REJECTED + EMAIL));
+		            messageSenderDto.setIdType(IdType.RID);
+		            messageSenderDto.setSubjectCode(env.getProperty(MA_PACKET_REJECTED + SUB));
+		            break;
+		        }
+		    }
+		    // Fallback
+		    regProcLogger.info(
+		            LoggerFileConstant.SESSIONID.toString(),
+		            LoggerFileConstant.REGISTRATIONID.toString(),
+		            regId,
+		            "Fallback TECHNICAL_ISSUE template used for RID: " + regId
+		    );
+		    messageSenderDto.setSmsTemplateCode(env.getProperty(TECHNICAL_ISSUE + SMS));
+		    messageSenderDto.setEmailTemplateCode(env.getProperty(TECHNICAL_ISSUE + EMAIL));
+		    messageSenderDto.setIdType(IdType.RID);
+		    messageSenderDto.setSubjectCode(env.getProperty(TECHNICAL_ISSUE + SUB));
+		    break;
 		default:
 			break;
 		}
@@ -679,5 +707,6 @@ public class NotificationServiceImpl implements NotificationService {
 	}
 
 }
+
 
 
