@@ -16,6 +16,7 @@ on:
   push:
     branches:
       - notification
+      - noti_MA
 
 jobs:
   build-maven-registration:
