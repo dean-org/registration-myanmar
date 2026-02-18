@@ -502,6 +502,13 @@ public class NotificationServiceImpl implements NotificationService {
 		default:
 			break;
 		}
+		regProcLogger.info(
+        LoggerFileConstant.SESSIONID.toString(),
+        LoggerFileConstant.REGISTRATIONID.toString(),
+        regType,
+        "Notification TemplateType: " + templatetype +
+        " | idType set as: " + messageSenderDto.getIdType()
+    );
 	}
 
 	/**
@@ -629,3 +636,4 @@ public class NotificationServiceImpl implements NotificationService {
 	}
 
 }
+
