@@ -59,6 +59,7 @@ import io.mosip.registration.processor.status.code.RegistrationStatusCode;
 import io.mosip.registration.processor.status.dto.InternalRegistrationStatusDto;
 import io.mosip.registration.processor.status.dto.RegistrationStatusDto;
 import io.mosip.registration.processor.status.service.RegistrationStatusService;
+import org.springframework.web.client.RestClientException;
 
 /**
  * The Class QualityCheckerStage.
@@ -309,20 +310,57 @@ public class QualityClassifierStage extends MosipVerticleAPIManager {
 			object.setInternalError(Boolean.TRUE);
 			description.setCode(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getCode());
 			description.setMessage(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getMessage());
-
+//		} catch (BiometricException e) {
+//			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
+//			registrationStatusDto.setStatusComment(trimExceptionMsg
+//					.trimExceptionMessage(StatusUtil.BIO_METRIC_EXCEPTION.getMessage() + e.getMessage()));
+//			registrationStatusDto.setSubStatusCode(StatusUtil.BIO_METRIC_EXCEPTION.getCode());
+//			registrationStatusDto.setLatestTransactionStatusCode(
+//					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BIOMETRIC_EXCEPTION));
+//			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+//					regId,
+//					PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getMessage() + ExceptionUtils.getStackTrace(e));
+//			object.setInternalError(Boolean.TRUE);
+//			description.setCode(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getCode());
+//			description.setMessage(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getMessage());
 		} catch (BiometricException e) {
-			registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
-			registrationStatusDto.setStatusComment(trimExceptionMsg
-					.trimExceptionMessage(StatusUtil.BIO_METRIC_EXCEPTION.getMessage() + e.getMessage()));
-			registrationStatusDto.setSubStatusCode(StatusUtil.BIO_METRIC_EXCEPTION.getCode());
-			registrationStatusDto.setLatestTransactionStatusCode(
-					registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BIOMETRIC_EXCEPTION));
-			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
-					regId,
-					PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getMessage() + ExceptionUtils.getStackTrace(e));
-			object.setInternalError(Boolean.TRUE);
-			description.setCode(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getCode());
-			description.setMessage(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getMessage());
+			// Check if the cause is a REST/Network issue (503 Service Unavailable)
+			if (e.getCause() instanceof RestClientException ||
+					(e.getMessage() != null && e.getMessage().contains("503"))) {
+
+				regProcLogger.warn(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						regId, "Biometric SDK Service Unavailable (503). Marking packet for REPROCESS.");
+
+				// Set status to REPROCESS so it can be picked up again later
+				registrationStatusDto.setLatestTransactionStatusCode(RegistrationTransactionStatusCode.REPROCESS.toString());
+				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.toString());
+				registrationStatusDto.setStatusComment("SDK Service Unavailable - Retry Pending: " + e.getMessage());
+
+				// Keep SubStatusCode generic or specific if you have a code for Retry
+				registrationStatusDto.setSubStatusCode(StatusUtil.BIO_METRIC_EXCEPTION.getCode());
+
+				// This ensures the updateErrorFlags method sets isValid=TRUE so the message isn't discarded
+				object.setInternalError(Boolean.TRUE);
+
+				description.setCode(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getCode());
+				description.setMessage("Service Unavailable - Marked for Reprocess");
+			} else {
+				// DEFAULT FAILURE LOGIC (For actual data corruption or SDK errors)
+				registrationStatusDto.setStatusCode(RegistrationStatusCode.PROCESSING.name());
+				registrationStatusDto.setStatusComment(trimExceptionMsg
+						.trimExceptionMessage(StatusUtil.BIO_METRIC_EXCEPTION.getMessage() + e.getMessage()));
+				registrationStatusDto.setSubStatusCode(StatusUtil.BIO_METRIC_EXCEPTION.getCode());
+				registrationStatusDto.setLatestTransactionStatusCode(
+						registrationStatusMapperUtil.getStatusCode(RegistrationExceptionTypeCode.BIOMETRIC_EXCEPTION));
+
+				regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						regId,
+						PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getMessage() + ExceptionUtils.getStackTrace(e));
+
+				object.setInternalError(Boolean.TRUE);
+				description.setCode(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getCode());
+				description.setMessage(PlatformErrorMessages.RPR_QCR_BIOMETRIC_EXCEPTION.getMessage());
+			}
 		} catch (JsonProcessingException e) {
 			regProcLogger.error(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 					regId, RegistrationStatusCode.FAILED.toString() + e.getMessage()
