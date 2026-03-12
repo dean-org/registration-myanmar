@@ -142,8 +142,13 @@ public class BiometricsSignatureValidator {
 				.parse(DateUtils.getUTCCurrentDateTimeString(env.getProperty(DATETIME_PATTERN)), format);
 		request.setRequesttime(localdatetime);
 
+		regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), id,
+				"Keymanager jwtVerify Request -> ", JsonUtils.javaObjectToJsonString(request));
 		ResponseWrapper<?> responseWrapper = (ResponseWrapper<?>) registrationProcessorRestService
 				.postApi(ApiName.JWTVERIFY, "", "", request, ResponseWrapper.class);
+		regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), id,
+				"Keymanager jwtVerify Response -> ", JsonUtils.javaObjectToJsonString(responseWrapper));
+
 		if (responseWrapper.getResponse() != null) {
 			JWTSignatureVerifyResponseDto jwtResponse = mapper.readValue(
 					mapper.writeValueAsString(responseWrapper.getResponse()), JWTSignatureVerifyResponseDto.class);
