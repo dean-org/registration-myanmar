@@ -72,6 +72,12 @@ public class BiometricsSignatureValidator {
 		if (regClientVersionsBeforeCbeffOthersAttritube.contains(version)) {
 			return;
 		}
+		
+		if (isMigratorPacket(id, metaInfoMap)) {
+		    regProcLogger.info(LoggerFileConstant.REGISTRATIONID.toString(), id,
+		            "Skipping biometric signature validation for Migrator packet", "");
+		    return;
+		}
 
 		List<BIR> birs = biometricRecord.getSegments();
 		for (BIR bir : birs) {
@@ -81,6 +87,7 @@ public class BiometricsSignatureValidator {
 			}
 
 			boolean exceptionValue = false;
+
 			for (Map.Entry other : othersInfo.entrySet()) {
 				if (other.getKey().equals(JsonConstant.BIOMETRICRECORDEXCEPTION)) {
 					if (other.getValue().equals(TRUE)) {
@@ -90,7 +97,7 @@ public class BiometricsSignatureValidator {
 				}
 			}
 
-			if (exceptionValue || isMigratorPacket(id, metaInfoMap)) {
+			if (exceptionValue) {
 				continue;
 			}
 
