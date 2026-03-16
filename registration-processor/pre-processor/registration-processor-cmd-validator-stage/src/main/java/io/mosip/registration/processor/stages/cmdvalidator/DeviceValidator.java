@@ -178,10 +178,10 @@ public class DeviceValidator {
 	private void validateDevicesInBiometricRecord(BiometricRecord biometricRecord, RegOsiDto regOsi, String rid)
 			throws IOException, BaseCheckedException, JSONException {
 
-		if ("DATAMIGRATOR".equalsIgnoreCase(regOsi.getPacketSource())) {
-        regProcLogger.info("Skipping device validation for DATAMIGRATOR packet RID: {}", rid);
-        return;
-   		}
+		if (isDataMigratorPacket(rid, process)) {
+	    regProcLogger.info("Skipping device validation for DATAMIGRATOR packet RID: {}", rid);
+	    return;
+		}
 		List<BIR> birs = biometricRecord.getSegments();
 		List<JSONObject> payloads = new ArrayList<>();
 		for(BIR bir : birs) {
@@ -401,10 +401,38 @@ public class DeviceValidator {
     Map<String, String> metaInfo = packetManagerService.getMetaInfo(
             rid, process, ProviderStageName.PACKET_VALIDATOR);
 
-    if (metaInfo != null && DATAMIGRATOR.equalsIgnoreCase(metaInfo.get(PACKET_SOURCE))) {
-        return true;
+     String metadata = metaInfoMap.get(JsonConstant.METADATA);
+    String packetSource = null;
+    try {
+        if (StringUtils.isNotEmpty(metadata)) {
+            JSONArray jsonArray = new JSONArray(metadata);
+            for (int i = 0; i < jsonArray.length(); i++) {
+                if (!jsonArray.isNull(i)) {
+                    JSONObject jsonObject = jsonArray.getJSONObject(i);
+                    FieldValue fieldValue = mapper.readValue(
+                            jsonObject.toString(),
+                            FieldValue.class
+                    );
+                    if (PACKET_SOURCE.equalsIgnoreCase(fieldValue.getLabel())) {
+                        packetSource = fieldValue.getValue();
+                        break;
+                    }
+                }
+            }
+        }
+        regProcLogger.info(
+                "RID {} -> PacketSource from metadata: {}",
+                rid,
+                packetSource
+        );
+    } catch (Exception e) {
+        regProcLogger.error(
+                "RID {} -> Error extracting packetSource: {}",
+                rid,
+                e.getMessage()
+        );
     }
-    return false;
+    return DATAMIGRATOR.equalsIgnoreCase(packetSource);
 }
 
 
