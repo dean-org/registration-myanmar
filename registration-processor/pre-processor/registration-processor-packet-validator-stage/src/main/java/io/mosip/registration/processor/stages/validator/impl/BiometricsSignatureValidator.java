@@ -50,8 +50,7 @@ public class BiometricsSignatureValidator {
 	/** The Constant TRUE. */
 	private static final String TRUE = "true";
 	private static final String MIGRATOR_SOURCE = "DATAMIGRATOR";
-	private static final String MIGRATOR_PROCESS = "MIGRATOR";
-
+	
 	@Autowired
 	private RegistrationProcessorRestClientService<Object> registrationProcessorRestService;
 
@@ -101,9 +100,38 @@ public class BiometricsSignatureValidator {
 
 	}
 
-	private boolean isMigratorPacket(String process, Map<String, String> metaInfoMap) {
-    	String source = metaInfoMap.get("source");
-   		return MIGRATOR_SOURCE.equalsIgnoreCase(source) || MIGRATOR_PROCESS.equalsIgnoreCase(process);
+	private boolean isMigratorPacket(String id, Map<String, String> metaInfoMap) {
+		    String metadata = metaInfoMap.get(JsonConstant.METADATA);
+		    String packetSource = null;
+		    try {
+		        if (StringUtils.isNotEmpty(metadata)) {
+		            JSONArray jsonArray = new JSONArray(metadata);
+		            for (int i = 0; i < jsonArray.length(); i++) {
+		                if (!jsonArray.isNull(i)) {
+		                    org.json.JSONObject jsonObject = jsonArray.getJSONObject(i);
+		                    FieldValue fieldValue = mapper.readValue(jsonObject.toString(), FieldValue.class);
+		                    if ("packetSource".equalsIgnoreCase(fieldValue.getLabel())) {
+		                        packetSource = fieldValue.getValue();
+		                        break;
+		                    }
+		                }
+		            }
+		        }
+		        regProcLogger.info(
+		                LoggerFileConstant.REGISTRATIONID.toString(),
+		                id,
+		                "PacketSource from metadata -> ",
+		                packetSource
+		        );
+		    } catch (Exception e) {
+		        regProcLogger.error(
+		                LoggerFileConstant.REGISTRATIONID.toString(),
+		                id,
+		                "Error extracting packetSource from metadata",
+		                e.getMessage()
+		        );
+		    }
+		    return MIGRATOR_SOURCE.equalsIgnoreCase(packetSource);
 	}
 
 	private String getRegClientVersionFromMetaInfo(String id, String process, Map<String, String> metaInfoMap)
