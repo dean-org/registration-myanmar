@@ -90,8 +90,8 @@ public class BiometricsSignatureValidator {
 				}
 			}
 
-			if (exceptionValue || isMigratorPacket(process, metaInfoMap)) {
-			    continue;
+			if (exceptionValue || isMigratorPacket(id, metaInfoMap)) {
+				continue;
 			}
 
 			String token = BiometricsSignatureHelper.extractJWTToken(bir);
