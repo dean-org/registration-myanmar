@@ -101,6 +101,9 @@ public class DeviceValidator {
 	@Value("#{T(java.util.Arrays).asList('${mosip.regproc.biometric.correction.process:}')}")
 	private List<String> biometricCorrectionProcess;
 
+	private static final String PACKET_SOURCE = "packetSource";
+	private static final String DATAMIGRATOR = "DATAMIGRATOR";
+
 	/**
 	 * Checks if is device active.
 	 *
@@ -174,6 +177,11 @@ public class DeviceValidator {
 
 	private void validateDevicesInBiometricRecord(BiometricRecord biometricRecord, RegOsiDto regOsi, String rid)
 			throws IOException, BaseCheckedException, JSONException {
+
+		if ("DATAMIGRATOR".equalsIgnoreCase(regOsi.getPacketSource())) {
+        regProcLogger.info("Skipping device validation for DATAMIGRATOR packet RID: {}", rid);
+        return;
+   		}
 		List<BIR> birs = biometricRecord.getSegments();
 		List<JSONObject> payloads = new ArrayList<>();
 		for(BIR bir : birs) {
@@ -386,6 +394,18 @@ public class DeviceValidator {
 		}
 
 	}
+
+	private boolean isDataMigratorPacket(String rid, String process)
+        throws ApisResourceAccessException, PacketManagerException, IOException {
+
+    Map<String, String> metaInfo = packetManagerService.getMetaInfo(
+            rid, process, ProviderStageName.PACKET_VALIDATOR);
+
+    if (metaInfo != null && DATAMIGRATOR.equalsIgnoreCase(metaInfo.get(PACKET_SOURCE))) {
+        return true;
+    }
+    return false;
+}
 
 
 
