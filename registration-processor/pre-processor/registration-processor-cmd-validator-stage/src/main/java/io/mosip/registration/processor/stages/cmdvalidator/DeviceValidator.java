@@ -119,6 +119,10 @@ public class DeviceValidator {
 	 */
 	public void validate(RegOsiDto regOsi, String process, String registrationId) throws JsonProcessingException,
 			IOException, BaseCheckedException, ApisResourceAccessException, JSONException {
+		if (isDataMigratorPacket(registrationId, process)) {
+		    regProcLogger.info("Skipping device validation for DATAMIGRATOR packet RID: {}", registrationId);
+		    return;
+		}
 		List<String> fields = Arrays.asList(MappingJsonConstants.INDIVIDUAL_BIOMETRICS,
 				MappingJsonConstants.AUTHENTICATION_BIOMETRICS, MappingJsonConstants.INTRODUCER_BIO,
 				MappingJsonConstants.OFFICERBIOMETRICFILENAME, MappingJsonConstants.SUPERVISORBIOMETRICFILENAME);
@@ -178,10 +182,6 @@ public class DeviceValidator {
 	private void validateDevicesInBiometricRecord(BiometricRecord biometricRecord, RegOsiDto regOsi, String rid)
 			throws IOException, BaseCheckedException, JSONException {
 
-		if (isDataMigratorPacket(rid, process)) {
-	    regProcLogger.info("Skipping device validation for DATAMIGRATOR packet RID: {}", rid);
-	    return;
-		}
 		List<BIR> birs = biometricRecord.getSegments();
 		List<JSONObject> payloads = new ArrayList<>();
 		for(BIR bir : birs) {
@@ -400,8 +400,10 @@ public class DeviceValidator {
 
     Map<String, String> metaInfo = packetManagerService.getMetaInfo(
             rid, process, ProviderStageName.PACKET_VALIDATOR);
-
-     String metadata = metaInfoMap.get(JsonConstant.METADATA);
+	if (metaInfo == null) {
+    return false;
+	}
+    String metadata = metaInfo.get(JsonConstant.METADATA);
     String packetSource = null;
     try {
         if (StringUtils.isNotEmpty(metadata)) {
