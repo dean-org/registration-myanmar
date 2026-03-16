@@ -49,6 +49,8 @@ public class BiometricsSignatureValidator {
 
 	/** The Constant TRUE. */
 	private static final String TRUE = "true";
+	private static final String MIGRATOR_SOURCE = "DATAMIGRATOR";
+	private static final String MIGRATOR_PROCESS = "MIGRATOR";
 
 	@Autowired
 	private RegistrationProcessorRestClientService<Object> registrationProcessorRestService;
@@ -89,14 +91,19 @@ public class BiometricsSignatureValidator {
 				}
 			}
 
-			if (exceptionValue) {
-				continue;
+			if (exceptionValue || isMigratorPacket(process, metaInfoMap)) {
+			    continue;
 			}
 
 			String token = BiometricsSignatureHelper.extractJWTToken(bir);
 			validateJWTToken(id, token);
 		}
 
+	}
+
+	private boolean isMigratorPacket(String process, Map<String, String> metaInfoMap) {
+    	String source = metaInfoMap.get("source");
+   		return MIGRATOR_SOURCE.equalsIgnoreCase(source) || MIGRATOR_PROCESS.equalsIgnoreCase(process);
 	}
 
 	private String getRegClientVersionFromMetaInfo(String id, String process, Map<String, String> metaInfoMap)
