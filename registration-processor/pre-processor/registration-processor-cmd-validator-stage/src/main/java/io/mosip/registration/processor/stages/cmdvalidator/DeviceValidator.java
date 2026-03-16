@@ -396,7 +396,7 @@ public class DeviceValidator {
 	}
 
 	private boolean isDataMigratorPacket(String rid, String process)
-        throws ApisResourceAccessException, PacketManagerException, IOException {
+        throws ApisResourceAccessException, PacketManagerException, IOException,  io.mosip.kernel.core.util.exception.JsonProcessingException {
 
     Map<String, String> metaInfo = packetManagerService.getMetaInfo(
             rid, process, ProviderStageName.PACKET_VALIDATOR);
