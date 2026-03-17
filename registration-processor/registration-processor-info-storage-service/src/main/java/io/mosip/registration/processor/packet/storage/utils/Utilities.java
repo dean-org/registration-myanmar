@@ -262,7 +262,8 @@ public class Utilities {
 			return Integer.valueOf(applicantAge);
 		} else {
 			String uid = getUID(id, process, stageName);
-			JSONObject identityJSONOject = retrieveIdrepoJson(uid);
+			// JSONObject identityJSONOject = retrieveIdrepoJson(uid);
+			JSONObject identityJSONOject = getIdentityJSONObjectByHandle(uid);
 			JSONObject regProcessorIdentityJson = getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 			String ageKey = JsonUtil
 					.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.AGE), VALUE);
