@@ -113,6 +113,7 @@ public class PacketValidatorImpl implements PacketValidator {
 			if (process.equalsIgnoreCase(RegistrationType.UPDATE.toString())
 					|| process.equalsIgnoreCase(RegistrationType.RES_UPDATE.toString())) {
 				uin = utility.getUINByHandle(id, process, ProviderStageName.PACKET_VALIDATOR);
+				if (uin != null) {
 				if (uin == null) {
 					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
 							LoggerFileConstant.REGISTRATIONID.toString(), id,
@@ -135,6 +136,7 @@ public class PacketValidatorImpl implements PacketValidator {
 					throw new RegistrationProcessorCheckedException(
 							PlatformErrorMessages.RPR_PVM_UPDATE_DEACTIVATED.getCode(), "UIN is Deactivated");
 				}
+			}
 			}
 
 			// document validation
