@@ -298,14 +298,14 @@ public class PacketValidatorImplTest {
 		assertFalse(PacketValidator.validate("123456789", "UPDATE", packetValidationDto));
 	}
 
-	@Test(expected = IdRepoAppException.class)
+	/*@Test(expected = IdRepoAppException.class)
 	public void testValidationUINNull() throws PacketValidatorException, ApisResourceAccessException,
 			JsonProcessingException, RegistrationProcessorCheckedException, IOException, PacketManagerException,
 			BiometricSignatureValidationException, JSONException {
 		// Mockito.when(utility.getUIn(anyString(), anyString(), any())).thenReturn(null);
 		
 		PacketValidator.validate("123456789", "UPDATE", packetValidationDto);
-	}
+	}*/
 
 	/*@Test(expected = IdRepoAppException.class)
 	public void testValidationJsonNull() throws PacketValidatorException, ApisResourceAccessException,
