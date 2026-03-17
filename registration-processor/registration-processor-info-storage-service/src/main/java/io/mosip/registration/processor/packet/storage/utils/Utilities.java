@@ -261,8 +261,8 @@ public class Utilities {
 					"Utilities::getApplicantAge()::exit when applicantAge is not null");
 			return Integer.valueOf(applicantAge);
 		} else {
-			String uin = getUIn(id, process, stageName);
-			JSONObject identityJSONOject = retrieveIdrepoJson(uin);
+			String uid = getUID(id, process, stageName);
+			JSONObject identityJSONOject = retrieveIdrepoJson(uid);
 			JSONObject regProcessorIdentityJson = getRegistrationProcessorMappingJson(MappingJsonConstants.IDENTITY);
 			String ageKey = JsonUtil
 					.getJSONValue(JsonUtil.getJSONObject(regProcessorIdentityJson, MappingJsonConstants.AGE), VALUE);
@@ -910,7 +910,15 @@ public class Utilities {
 			}
 			return null;
 		}
-	 
- 
+
+	public String getUID(String id, String process, ProviderStageName stageName)
+			throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
+				"Utilities::getUID()::entry");
+		String UID = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.UID, process, stageName);
+		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
+				"Utilities::getUID()::exit");
+		return UID;
+	}
 
 }
