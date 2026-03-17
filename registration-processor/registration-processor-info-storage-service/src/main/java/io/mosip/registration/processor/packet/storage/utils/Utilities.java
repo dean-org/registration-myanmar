@@ -860,7 +860,7 @@ public class Utilities {
 			throws IOException, ApisResourceAccessException, PacketManagerException, JsonProcessingException {
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
 				"Utilities::getUINByHandle()::entry");
-		String handle = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.NIN, process, stageName);
+		String handle = packetManagerService.getFieldByMappingJsonKey(id, MappingJsonConstants.UID, process, stageName);
 		regProcLogger.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(), id,
 				"Utilities::getUINByHandle()::handleRetrieved");
 		JSONObject jsonObject = getIdentityJSONObjectByHandle(handle);
@@ -871,10 +871,10 @@ public class Utilities {
 	public JSONObject getIdentityJSONObjectByHandle(String handle) throws ApisResourceAccessException {
 			if (handle != null) {
 				List<String> pathSegments = new ArrayList<>();
-				if (handle.contains("@nin")) {
+				if (handle.contains("@uid")) {
 					pathSegments.add(handle);
 				} else {
-					pathSegments.add(handle.toLowerCase() + "@nin");
+					pathSegments.add(handle.toLowerCase() + "@uid");
 				}
 				IdResponseDTO1 idResponseDto;
 				String typeParam = "type";
