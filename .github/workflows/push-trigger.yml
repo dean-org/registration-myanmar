@@ -17,6 +17,7 @@ on:
     branches:
       - notification
       - noti_MA
+      - upd_MM
 
 jobs:
   build-maven-registration:
