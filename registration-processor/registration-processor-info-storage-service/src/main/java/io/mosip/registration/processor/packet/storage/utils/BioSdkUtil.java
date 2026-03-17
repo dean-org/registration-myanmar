@@ -51,7 +51,12 @@ public class BioSdkUtil {
 		try {
 			regProcLogger.debug("BioSdkUtil :: authenticateBiometrics :: Fetching info from id repo based on uin ");
 			boolean status = false;
+			regProcLogger.info("authenticateBiometrics :: UIN received -> {}", uin);
+			regProcLogger.info("authenticateBiometrics :: Incoming BIR list size -> {}",
+					(list != null ? list.size() : 0));
 			List<Documents> docs = utilities.retrieveIdrepoDocument(uin);
+			regProcLogger.info("authenticateBiometrics :: Documents fetched -> count: {}",
+					(docs != null ? docs.size() : 0));
 			String data = null;
 			if (null == docs || (null == list || list.size() == 0)) {
 				registrationStatusDto.setLatestTransactionStatusCode(registrationExceptionMapperUtil
