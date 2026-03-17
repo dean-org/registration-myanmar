@@ -53,7 +53,7 @@ public class PacketValidatorImpl implements PacketValidator {
 	public static final String APPROVED = "APPROVED";
 	public static final String REJECTED = "REJECTED";
 	private static final String VALIDATEAPPLICANTDOCUMENT = "mosip.regproc.packet.validator.validate-applicant-document";
-    private static final String VALIDATEAPPLICANTDOCUMENTPROCESS = "mosip.regproc.packet.validator.validate-applicant-document.processes";
+	private static final String VALIDATEAPPLICANTDOCUMENTPROCESS = "mosip.regproc.packet.validator.validate-applicant-document.processes";
 
 	@Autowired
 	private PriorityBasedPacketManagerService packetManagerService;
@@ -63,13 +63,13 @@ public class PacketValidatorImpl implements PacketValidator {
 
 	@Autowired
 	private Environment env;
-	
+
 	@Autowired
 	ObjectMapper mapper;
 
 	@Autowired
 	private BiometricsXSDValidator biometricsXSDValidator;
-	
+
 	@Autowired
 	private BiometricsSignatureValidator biometricsSignatureValidator;
 
@@ -94,7 +94,7 @@ public class PacketValidatorImpl implements PacketValidator {
 						.setPacketValidaionFailureMessage(StatusUtil.PACKET_MANAGER_VALIDATION_FAILURE.getMessage());
 				return false;
 			}
-			
+
 			//Check consent
 			if(!checkConsentForPacket(id,process,ProviderStageName.PACKET_VALIDATOR))
 			{
@@ -107,36 +107,50 @@ public class PacketValidatorImpl implements PacketValidator {
 						.setPacketValidaionFailureMessage(StatusUtil.PACKET_CONSENT_VALIDATION.getMessage());
 				return false;
 			}
-			
-			
+
+
 
 			if (process.equalsIgnoreCase(RegistrationType.UPDATE.toString())
 					|| process.equalsIgnoreCase(RegistrationType.RES_UPDATE.toString())) {
 				uin = utility.getUINByHandle(id, process, ProviderStageName.PACKET_VALIDATOR);
 				if (uin != null) {
-				if (uin == null) {
-					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(), id,
-							"ERROR =======>" + PlatformErrorMessages.RPR_PVM_INVALID_UIN.getMessage());
-					throw new IdRepoAppException(PlatformErrorMessages.RPR_PVM_INVALID_UIN.getMessage());
+					if (uin == null) {
+						regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+								LoggerFileConstant.REGISTRATIONID.toString(), id,
+								"ERROR =======>" + PlatformErrorMessages.RPR_PVM_INVALID_UIN.getMessage());
+						throw new IdRepoAppException(PlatformErrorMessages.RPR_PVM_INVALID_UIN.getMessage());
+					}
+					JSONObject jsonObject = utility.retrieveIdrepoJson(uin);
+					if (jsonObject == null) {
+						regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+								LoggerFileConstant.REGISTRATIONID.toString(), id,
+								"ERROR =======>" + PlatformErrorMessages.RPR_PIS_IDENTITY_NOT_FOUND.getMessage());
+						throw new IdRepoAppException(PlatformErrorMessages.RPR_PIS_IDENTITY_NOT_FOUND.getMessage());
+					}
+					String status = utility.retrieveIdrepoJsonStatus(uin);
+					if (process.equalsIgnoreCase(RegistrationType.UPDATE.toString())
+							&& status.equalsIgnoreCase(RegistrationType.DEACTIVATED.toString())) {
+						regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+								LoggerFileConstant.REGISTRATIONID.toString(), id,
+								"ERROR =======>" + PlatformErrorMessages.RPR_PVM_UPDATE_DEACTIVATED.getMessage());
+						throw new RegistrationProcessorCheckedException(
+								PlatformErrorMessages.RPR_PVM_UPDATE_DEACTIVATED.getCode(), "UIN is Deactivated");
+					}
+
+					// check if uin is in idrepisitory
+					if (RegistrationType.UPDATE.name().equalsIgnoreCase(process)
+							|| RegistrationType.RES_UPDATE.name().equalsIgnoreCase(process)) {
+
+						if (!utility.uinPresentInIdRepo(String.valueOf(uin))) {
+							regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
+									LoggerFileConstant.REGISTRATIONID.toString(), id,
+									"ERROR =======>" + StatusUtil.UIN_NOT_FOUND_IDREPO.getMessage());
+							packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.UIN_NOT_FOUND_IDREPO.getMessage());
+							packetValidationDto.setPacketValidatonStatusCode(StatusUtil.UIN_NOT_FOUND_IDREPO.getCode());
+							return false;
+						}
+					}
 				}
-				JSONObject jsonObject = utility.retrieveIdrepoJson(uin);
-				if (jsonObject == null) {
-					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(), id,
-							"ERROR =======>" + PlatformErrorMessages.RPR_PIS_IDENTITY_NOT_FOUND.getMessage());
-					throw new IdRepoAppException(PlatformErrorMessages.RPR_PIS_IDENTITY_NOT_FOUND.getMessage());
-				}
-				String status = utility.retrieveIdrepoJsonStatus(uin);
-				if (process.equalsIgnoreCase(RegistrationType.UPDATE.toString())
-						&& status.equalsIgnoreCase(RegistrationType.DEACTIVATED.toString())) {
-					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(), id,
-							"ERROR =======>" + PlatformErrorMessages.RPR_PVM_UPDATE_DEACTIVATED.getMessage());
-					throw new RegistrationProcessorCheckedException(
-							PlatformErrorMessages.RPR_PVM_UPDATE_DEACTIVATED.getCode(), "UIN is Deactivated");
-				}
-			}
 			}
 
 			// document validation
@@ -147,19 +161,6 @@ public class PacketValidatorImpl implements PacketValidator {
 				return false;
 			}
 
-			// check if uin is in idrepisitory
-			if (RegistrationType.UPDATE.name().equalsIgnoreCase(process)
-					|| RegistrationType.RES_UPDATE.name().equalsIgnoreCase(process)) {
-
-				if (!utility.uinPresentInIdRepo(String.valueOf(uin))) {
-					regProcLogger.error(LoggerFileConstant.SESSIONID.toString(),
-							LoggerFileConstant.REGISTRATIONID.toString(), id,
-							"ERROR =======>" + StatusUtil.UIN_NOT_FOUND_IDREPO.getMessage());
-					packetValidationDto.setPacketValidaionFailureMessage(StatusUtil.UIN_NOT_FOUND_IDREPO.getMessage());
-					packetValidationDto.setPacketValidatonStatusCode(StatusUtil.UIN_NOT_FOUND_IDREPO.getCode());
-					return false;
-				}
-			}
 
 			if (!biometricsXSDValidation(id, process, packetValidationDto)) {
 				return false;
@@ -186,10 +187,10 @@ public class PacketValidatorImpl implements PacketValidator {
 		List<String> fields = Arrays.asList(MappingJsonConstants.INDIVIDUAL_BIOMETRICS,
 				MappingJsonConstants.AUTHENTICATION_BIOMETRICS, MappingJsonConstants.INTRODUCER_BIO,
 				MappingJsonConstants.OFFICERBIOMETRICFILENAME, MappingJsonConstants.SUPERVISORBIOMETRICFILENAME);
-		
+
 		Map<String, String> metaInfoMap = packetManagerService.getMetaInfo(id, process,
 				ProviderStageName.PACKET_VALIDATOR);
-		
+
 		for (String field : fields) {
 			BiometricRecord biometricRecord = null;
 			if (field.equals(MappingJsonConstants.OFFICERBIOMETRICFILENAME)
@@ -240,9 +241,9 @@ public class PacketValidatorImpl implements PacketValidator {
 		}
 		return true;
 	}
-	
+
 	private String getOperationsDataFromMetaInfo(String id, String process, String fileName,
-			Map<String, String> metaInfoMap)
+												 Map<String, String> metaInfoMap)
 			throws ApisResourceAccessException, PacketManagerException, IOException, JSONException {
 		String metadata = metaInfoMap.get(JsonConstant.OPERATIONSDATA);
 		String value = null;
@@ -265,7 +266,7 @@ public class PacketValidatorImpl implements PacketValidator {
 
 
 	private boolean applicantDocumentValidation(String registrationId, String process,
-			PacketValidationDto packetValidationDto)
+												PacketValidationDto packetValidationDto)
 			throws ApisResourceAccessException, JsonProcessingException, PacketManagerException, IOException {
 		String validateApplicant=env.getProperty(VALIDATEAPPLICANTDOCUMENT);
 		if (validateApplicant!=null && validateApplicant.trim().equalsIgnoreCase(VALIDATIONFALSE))
@@ -283,7 +284,7 @@ public class PacketValidatorImpl implements PacketValidator {
 			return true;
 		}
 	}
-	
+
 	private boolean checkConsentForPacket(String id, String process, ProviderStageName stageName)
 			throws ApisResourceAccessException, PacketManagerException, JsonProcessingException, IOException {
 
@@ -295,7 +296,7 @@ public class PacketValidatorImpl implements PacketValidator {
 		return true;
 
 	}
-	
-	
+
+
 
 }
