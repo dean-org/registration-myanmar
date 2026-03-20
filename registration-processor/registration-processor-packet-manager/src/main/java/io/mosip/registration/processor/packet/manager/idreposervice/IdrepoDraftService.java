@@ -149,15 +149,30 @@ public class IdrepoDraftService {
         regProcLogger.debug("idrepoDiscardDraft entry " + id);
         List<String> pathsegments = new ArrayList<String>();
         pathsegments.add(id);
+
         IdResponseDTO response = (IdResponseDTO) registrationProcessorRestClientService
                 .deleteApi(ApiName.IDREPODISCARDDRAFT, pathsegments, "", "", IdResponseDTO.class);
+
+        // 1. Check if response is null
+        if (response == null) {
+            regProcLogger.error("idrepoDiscardDraft: Received null response from ID Repo service for RID: {}", id);
+            throw new IdrepoDraftException(PlatformErrorMessages.DRAFT_CHECK_FAILED.getCode(), "Null response from ID Repo");
+        }
+
         if (response.getErrors() != null && !response.getErrors().isEmpty()) {
             ErrorDTO error = response.getErrors().get(0);
-            regProcLogger.error("Error occured while discarding draft for id : " + id, error.toString());
-            if (response.getErrors().get(0).getErrorCode().equalsIgnoreCase(ID_REPO_KEY_MANAGER_ERROR)) {
+
+            // 2. Check if error object is null before calling toString()
+            String errorMessage = (error != null) ? error.toString() : "Unknown Error";
+            regProcLogger.error("Error occured while discarding draft for id : " + id, errorMessage);
+
+            // 3. Use Null-safe comparison: Constant.equalsIgnoreCase(Variable)
+            if (error != null && ID_REPO_KEY_MANAGER_ERROR.equalsIgnoreCase(error.getErrorCode())) {
                 throw new IdrepoDraftReprocessableException(error.getErrorCode(), error.getMessage());
-            } else {
+            } else if (error != null) {
                 throw new IdrepoDraftException(error.getErrorCode(), error.getMessage());
+            } else {
+                throw new IdrepoDraftException("INTERNAL_ERROR", "Error list was not empty but error object was null");
             }
         }
         return true;
