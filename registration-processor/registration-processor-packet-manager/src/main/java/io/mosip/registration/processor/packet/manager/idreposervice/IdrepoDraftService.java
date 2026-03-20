@@ -93,7 +93,8 @@ public class IdrepoDraftService {
             JSONObject existingIdentity = mapper.readValue(mapper.writeValueAsString(responseDTO.getIdentity()), JSONObject.class);
             JSONObject newIdentity = mapper.readValue(mapper.writeValueAsString(idRequestDto.getRequest().getIdentity()), JSONObject.class);
             newIdentity.put(UIN, existingIdentity.get(UIN));
-            idRequestDto.getRequest().setIdentity(newIdentity);
+            // setting the identity to request while updating the draft.
+            requestDto.setIdentity(newIdentity);
             requestDto.setRegistrationId(responseDTO.getRegistrationId());
             requestDto.setStatus(responseDTO.getStatus());
             requestDto.setUin(responseDTO.getUin());
@@ -104,6 +105,9 @@ public class IdrepoDraftService {
         IdResponseDTO response = (IdResponseDTO) registrationProcessorRestClientService.patchApi(
                 ApiName.IDREPOUPDATEDRAFT, Lists.newArrayList(id), null, null, idRequestDto, IdResponseDTO.class);
         if (response.getErrors() != null && !response.getErrors().isEmpty()) {
+            regProcLogger.info("Error while updating the draft " + id);
+            regProcLogger.info(id + " Discarding the draft because of " + response.getErrors().get(0).getMessage());
+            idrepoDiscardDraft(id);
 			ErrorDTO error = response.getErrors().get(0);
 			regProcLogger.error("Error occured while updating draft for id : " + id, error.toString());
 			if (response.getErrors().get(0).getErrorCode().equalsIgnoreCase(ID_REPO_KEY_MANAGER_ERROR)) {
@@ -123,19 +127,41 @@ public class IdrepoDraftService {
     	List<String> pathsegments=new ArrayList<String>();
 		pathsegments.add(id);
 		IdResponseDTO response =  (IdResponseDTO) registrationProcessorRestClientService.
-				getApi(ApiName.IDREPOPUBLISHDRAFT, pathsegments, "", "", IdResponseDTO.class);	
-		if (response.getErrors() != null && !response.getErrors().isEmpty()) {
-			ErrorDTO error = response.getErrors().get(0);
-			regProcLogger.error("Error occured while updating draft for id : " + id, error.toString());
-			if (response.getErrors().get(0).getErrorCode().equalsIgnoreCase(ID_REPO_KEY_MANAGER_ERROR)) {
-				throw new IdrepoDraftReprocessableException(error.getErrorCode(), error.getMessage());
-			} else {
-				throw new IdrepoDraftException(error.getErrorCode(), error.getMessage());
-			}
-
+				getApi(ApiName.IDREPOPUBLISHDRAFT, pathsegments, "", "", IdResponseDTO.class);
+        if(response.getErrors()!=null && !response.getErrors().isEmpty())
+        {
+            ErrorDTO error=response.getErrors().get(0);
+            regProcLogger.error("Error occured while publishing the Draft : " + id, error.toString());
+            if (response.getErrors().get(0).getErrorCode().equalsIgnoreCase(ID_REPO_KEY_MANAGER_ERROR)) {
+                throw new IdrepoDraftReprocessableException(error.getErrorCode(), error.getMessage());
+            } else {
+                idrepoDiscardDraft(id);
+                throw new IdrepoDraftException(error.getErrorCode(), error.getMessage());
+            }
         }
 
         regProcLogger.debug("idrepoPublishDraft exit " + id);
         return response;
-	}
+    }
+
+    public Boolean idrepoDiscardDraft(String id)
+            throws ApisResourceAccessException, IdrepoDraftReprocessableException, IdrepoDraftException {
+        regProcLogger.debug("idrepoDiscardDraft entry " + id);
+        List<String> pathsegments = new ArrayList<String>();
+        pathsegments.add(id);
+        IdResponseDTO response = (IdResponseDTO) registrationProcessorRestClientService
+                .deleteApi(ApiName.IDREPODISCARDDRAFT, pathsegments, "", "", IdResponseDTO.class);
+        if (response.getErrors() != null && !response.getErrors().isEmpty()) {
+            ErrorDTO error = response.getErrors().get(0);
+            regProcLogger.error("Error occured while discarding draft for id : " + id, error.toString());
+            if (response.getErrors().get(0).getErrorCode().equalsIgnoreCase(ID_REPO_KEY_MANAGER_ERROR)) {
+                throw new IdrepoDraftReprocessableException(error.getErrorCode(), error.getMessage());
+            } else {
+                throw new IdrepoDraftException(error.getErrorCode(), error.getMessage());
+            }
+        }
+        return true;
+    }
 }
+
+
