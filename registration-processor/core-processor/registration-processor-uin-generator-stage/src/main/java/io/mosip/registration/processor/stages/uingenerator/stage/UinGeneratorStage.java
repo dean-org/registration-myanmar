@@ -26,6 +26,10 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import io.mosip.kernel.biometrics.entities.BiometricRecord;
 import io.mosip.kernel.biometrics.spi.CbeffUtil;
 import io.mosip.kernel.core.logger.spi.Logger;
@@ -251,7 +255,17 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 				String uinField = fieldMap.get(utility.getMappingJsonValue(MappingJsonConstants.UIN, MappingJsonConstants.IDENTITY));
 
 				JSONObject demographicIdentity = new JSONObject();
+				if ((StringUtils.isEmpty(uinField) || uinField.equalsIgnoreCase("null"))
+				        && (RegistrationType.UPDATE.toString().equalsIgnoreCase(object.getReg_type()))){
+					String handleField = fieldMap.get(MappingJsonConstants.UID);
+					if (StringUtils.isNotEmpty(handleField) && !handleField.equalsIgnoreCase("null")) {
+						JSONObject jsonObject = utility.getIdentityJSONObjectByHandle(handleField);
+						uinField = JsonUtil.getJSONValue(jsonObject, "UIN");
+						demographicIdentity.put("UIN", uinField);
+					}
+				}
 				demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, convertIdschemaToDouble ? Double.valueOf(schemaVersion) : schemaVersion);
+				
 
 				loadDemographicIdentity(fieldMap, demographicIdentity);
 
@@ -1019,7 +1033,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			IdrepoDraftReprocessableException {
 
 		IdResponseDTO idResponse = null;
-		String uin = idRepoService.getUinByRid(matchedRegId, utility.getGetRegProcessorDemographicIdentity());
+		JSONObject jsonObject = idRepoService.getIdJsonFromIDRepo(matchedRegId, utility.getGetRegProcessorDemographicIdentity());
+		String uin = JsonUtil.getJSONValue(jsonObject, "UIN");
+		String uid = JsonUtil.getJSONValue(jsonObject, "UID");
 
 
 		RequestDto requestDto = new RequestDto();
@@ -1032,6 +1048,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 
 			JSONObject identityObject = new JSONObject();
 			identityObject.put(UINConstants.UIN, uin);
+			identityObject.put("UID", uid);
 			String schemaVersion = packetManagerService.getFieldByMappingJsonKey(lostPacketRegId, MappingJsonConstants.IDSCHEMA_VERSION, process, ProviderStageName.UIN_GENERATOR);
 			identityObject.put(idschemaversion, convertIdschemaToDouble ? Double.valueOf(schemaVersion) : schemaVersion);
 			regProcLogger.info("Fields to be updated "+updateInfo);
