@@ -7,6 +7,10 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Map;
+import io.mosip.kernel.biometrics.constant.BiometricType;
+import io.mosip.kernel.core.util.exception.JsonProcessingException;
+import org.json.simple.JSONObject;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -256,9 +260,18 @@ public class OperatorValidator {
 			individualType = null;
 		}
 
-			bioUtil.authenticateBiometrics(userId, individualType, list,registrationStatusDto,
-						StatusUtil.OFFICER_AUTHENTICATION_FAILED.getMessage(),
-						StatusUtil.OFFICER_AUTHENTICATION_FAILED.getCode());
+			JSONObject jsonObject = utility.getIdentityJSONObjectByHandle(userId);
+		if (jsonObject != null) {
+			String uin = JsonUtil.getJSONValue(jsonObject, "UIN");
+			List<BIR> filtertedBirs = filterExceptionBiometrics(list);
+			bioUtil.authenticateBiometrics(uin, individualType, filtertedBirs, registrationStatusDto,
+					StatusUtil.OFFICER_AUTHENTICATION_FAILED.getMessage(),
+					StatusUtil.OFFICER_AUTHENTICATION_FAILED.getCode());
+		} else {
+			throw new ValidationFailedException(
+					StatusUtil.BIOMETRICS_VALIDATION_FAILURE.getMessage() + " for officer : " + userId,
+					StatusUtil.BIOMETRICS_VALIDATION_FAILURE.getCode());
+		}
 
 			regProcLogger.debug("validateUserBiometric call ended for registrationId {}", registrationId);
 
@@ -355,5 +368,19 @@ public class OperatorValidator {
 		return isValidUser;
 	}
 
+	private List<BIR> filterExceptionBiometrics(List<BIR> biometricRecord)
+			throws JsonProcessingException, IOException, JSONException {
+		List<BIR> segments = biometricRecord.stream().filter(bio -> {
+			Map<String, String> othersMap = bio.getOthers().entrySet().stream()
+					.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+			return (othersMap == null || !othersMap.containsKey("EXCEPTION")) ? true
+					: !(Boolean.parseBoolean(othersMap.get("EXCEPTION")));
+		}).collect(Collectors.toList());
+		if (segments != null) {
+			segments = segments.stream().filter(bio -> !bio.getBdbInfo().getType().get(0).name()
+					.equalsIgnoreCase(BiometricType.EXCEPTION_PHOTO.name())).collect(Collectors.toList());
+		}
+		return segments;
+	}
 
 }
