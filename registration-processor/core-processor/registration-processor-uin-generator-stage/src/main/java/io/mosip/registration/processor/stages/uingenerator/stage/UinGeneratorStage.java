@@ -249,7 +249,7 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 					lostAndUpdateUin(lostPacketRegId, lostPacketUid, registrationStatusDto.getRegistrationType(), object, description);
 				}
 
-				} else {
+			} else {
 
 				IdResponseDTO idResponseDTO = new IdResponseDTO();
 				String schemaVersion = packetManagerService.getFieldByMappingJsonKey(registrationId, MappingJsonConstants.IDSCHEMA_VERSION, registrationStatusDto.getRegistrationType(), ProviderStageName.UIN_GENERATOR);
@@ -509,6 +509,8 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 					demographicIdentity.putIfAbsent(e.getKey(), value);
 			}
 		}
+		// ADDED: Log the constructed Identity object
+		regProcLogger.debug("UinGeneratorStage::loadDemographicIdentity() - Constructed Identity JSON: {}", demographicIdentity.toString());
 	}
 
 	/**
@@ -650,6 +652,8 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			throws Exception {
 		IdResponseDTO result;
 		boolean isTransactionSuccessful = Boolean.FALSE;
+		// ADDED: Log the start of the Update process
+		regProcLogger.info("UinGeneratorStage::uinUpdate() - Starting update flow for RID: {} with UIN: {}", regId, uin);
 		List<Documents> documentInfo = getAllDocumentsByRegId(regId, process, demographicIdentity);
 		result = idRepoRequestBuilder(regId, uin, RegistrationType.ACTIVATED.toString().toUpperCase(), documentInfo,
 				demographicIdentity);
@@ -714,8 +718,21 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		idRequestDTO.setRequesttime(DateUtils.getUTCCurrentDateTimeString());
 		idRequestDTO.setVersion(UINConstants.idRepoApiVersion);
 
+
+		// ADDED: Log the full Request Payload
+		try {
+			String jsonPayload = mapper.writeValueAsString(idRequestDTO);
+			regProcLogger.info("UinGeneratorStage::idRepoRequestBuilder() - Sending to IDRepo for RID: {}. Payload: {}", id, jsonPayload);
+		} catch (Exception e) {
+			regProcLogger.error("UinGeneratorStage::idRepoRequestBuilder() - Failed to serialize request for logging: {}", e.getMessage());
+		}
+
 		try {
 			idResponseDto = idrepoDraftService.idrepoUpdateDraft(id, uin, idRequestDTO);
+			// ADDED: Log the Response Received
+			if (idResponseDto != null) {
+				regProcLogger.info("UinGeneratorStage::idRepoRequestBuilder() - Received Response from IDRepo for RID: {}: {}", id, mapper.writeValueAsString(idResponseDto));
+			}
 		} catch (ApisResourceAccessException e) {
 			regProcLogger.error("Execption occured updating draft for id " + id, e);
 			if (e.getCause() instanceof HttpClientErrorException) {
