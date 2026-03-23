@@ -242,11 +242,11 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 				regProcLogger.info("Sending API request for registration ID: {}", registrationId);
 				Map<String, String> applicantFields = utility.getPacketManagerService().getFields(registrationId,
 						fieldsToFetch, object.getReg_type(), ProviderStageName.UIN_GENERATOR);
-				String lostPacketNin = applicantFields.get(MappingJsonConstants.UID);
+				String lostPacketUid = applicantFields.get(MappingJsonConstants.UID);
 
-				if (lostPacketNin != null) {
-					regProcLogger.info("Nin for lostPacketRegId " + lostPacketRegId + " is " + lostPacketNin);
-					lostAndUpdateUin(lostPacketRegId, lostPacketNin, registrationStatusDto.getRegistrationType(), object, description);
+				if (lostPacketUid != null) {
+					regProcLogger.info("Uid for lostPacketRegId " + lostPacketRegId + " is " + lostPacketUid);
+					lostAndUpdateUin(lostPacketRegId, lostPacketUid, registrationStatusDto.getRegistrationType(), object, description);
 				}
 
 				} else {
