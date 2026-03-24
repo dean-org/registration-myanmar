@@ -85,7 +85,7 @@ public class IdrepoDraftService {
 		regProcLogger.info("IdrepoDraftService::idrepoUpdateDraft()::INFO - Full request being sent to IDRepo for id: " + id);
         regProcLogger.info("IdrepoDraftService::idrepoUpdateDraft()::INFO - IdRequestDto: " + idRequestDto.toString());
         if (idRequestDto.getRequest() != null) {
-            regProcLogger.info("IdrepoDraftService::idrepoUpdateDraft()::INFO - Request identity: " + (idRequestDto.getRequest().getIdentity() != null ? idRequestDto.getRequest().getIdentity().toJSONString() : "null"));
+            regProcLogger.info("IdrepoDraftService::idrepoUpdateDraft()::INFO - Request identity: " + (idRequestDto.getRequest().getIdentity() != null ? mapper.writeValueAsString(idRequestDto.getRequest().getIdentity()) : "null"));
             regProcLogger.info("IdrepoDraftService::idrepoUpdateDraft()::INFO - Request status: " + idRequestDto.getRequest().getStatus());
             regProcLogger.info("IdrepoDraftService::idrepoUpdateDraft()::INFO - Request registrationId: " + idRequestDto.getRequest().getRegistrationId());
             if (idRequestDto.getRequest().getDocuments() != null) {
