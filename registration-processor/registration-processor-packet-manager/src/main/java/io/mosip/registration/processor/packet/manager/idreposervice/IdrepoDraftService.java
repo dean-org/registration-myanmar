@@ -81,6 +81,16 @@ public class IdrepoDraftService {
 	public IdResponseDTO idrepoUpdateDraft(String id, String uin, IdRequestDto idRequestDto)
 			throws ApisResourceAccessException, IdrepoDraftException, IOException, IdrepoDraftReprocessableException {
         regProcLogger.debug("idrepoUpdateDraft entry " + id);
+		regProcLogger.info("IdrepoDraftService::idrepoUpdateDraft()::INFO - Full request being sent to IDRepo for id: " + id);
+        regProcLogger.info("IdrepoDraftService::idrepoUpdateDraft()::INFO - IdRequestDto: " + idRequestDto.toString());
+        if (idRequestDto.getRequest() != null) {
+            regProcLogger.info("IdrepoDraftService::idrepoUpdateDraft()::INFO - Request identity: " + (idRequestDto.getRequest().getIdentity() != null ? idRequestDto.getRequest().getIdentity().toJSONString() : "null"));
+            regProcLogger.info("IdrepoDraftService::idrepoUpdateDraft()::INFO - Request status: " + idRequestDto.getRequest().getStatus());
+            regProcLogger.info("IdrepoDraftService::idrepoUpdateDraft()::INFO - Request registrationId: " + idRequestDto.getRequest().getRegistrationId());
+            if (idRequestDto.getRequest().getDocuments() != null) {
+                regProcLogger.info("IdrepoDraftService::idrepoUpdateDraft()::INFO - Documents count: " + idRequestDto.getRequest().getDocuments().size());
+            }
+        }
         if (!idrepoHasDraft(id)) {
             regProcLogger.info("Existing draft not found for id " + id + ". Creating new draft.");
 			Map<String, Object> identity = (Map<String, Object>) idRequestDto.getRequest().getIdentity();
