@@ -270,11 +270,18 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 				}
 				demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, convertIdschemaToDouble ? Double.valueOf(schemaVersion) : schemaVersion);
 
-
+				regProcLogger.info("DEBUG UIN STEP 1 - Raw fieldMap: " + fieldMap);
+				regProcLogger.info("DEBUG UIN STEP 1 - Extracted uinField: " + uinField);
+				regProcLogger.info("DEBUG UIN STEP 1 - Initial demographicIdentity BEFORE load: " + demographicIdentity.toJSONString());
 				loadDemographicIdentity(fieldMap, demographicIdentity);
+				regProcLogger.info("DEBUG UIN STEP 3 - demographicIdentity AFTER load: " + demographicIdentity.toJSONString());
+				regProcLogger.info("DEBUG UIN STEP 3 - UIN in identity AFTER load: " + demographicIdentity.get("UIN"));
 
 				if (StringUtils.isEmpty(uinField) || uinField.equalsIgnoreCase("null") ) {
 
+					regProcLogger.info("DEBUG UIN STEP 4 - About to call IDRepo");
+					regProcLogger.info("DEBUG UIN STEP 4 - UIN field variable: " + uinField);
+					regProcLogger.info("DEBUG UIN STEP 4 - UIN inside identity: " + demographicIdentity.get("UIN"));
 					idResponseDTO = sendIdRepoWithUin(registrationId, registrationStatusDto.getRegistrationType(), demographicIdentity,
 							uinField);
 
@@ -482,7 +489,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 	}
 
 	private void loadDemographicIdentity(Map<String, String> fieldMap, JSONObject demographicIdentity) throws IOException, JSONException {
+		    regProcLogger.info("DEBUG UIN STEP 2 - Entering loadDemographicIdentity");
 		for (Map.Entry e : fieldMap.entrySet()) {
+			regProcLogger.info("DEBUG UIN STEP 2 - Processing key: " + e.getKey() + " value: " + e.getValue());
 			if (e.getValue() != null) {
 				String value = e.getValue().toString();
 				if (value != null) {
@@ -509,6 +518,8 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 					demographicIdentity.putIfAbsent(e.getKey(), value);
 			}
 		}
+	    regProcLogger.info("DEBUG UIN STEP 2 - Final demographicIdentity AFTER load: " + demographicIdentity.toJSONString());
+	    regProcLogger.info("DEBUG UIN STEP 2 - UIN present in identity? " + demographicIdentity.get("UIN"));
 		// ADDED: Log the constructed Identity object
 		regProcLogger.debug("UinGeneratorStage::loadDemographicIdentity() - Constructed Identity JSON: {}", demographicIdentity.toString());
 	}
@@ -553,7 +564,8 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 				id, "UinGeneratorStage::sendIdRepoWithUin()::INFO - Full request being sent to IDRepo: " + idRequestDTO.toString());
 		regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
 				id, "UinGeneratorStage::sendIdRepoWithUin()::INFO - Demographic identity being sent: " + demographicIdentity.toJSONString());
-
+		regProcLogger.info("DEBUG UIN STEP 5 - biometricReferenceId (UIN param): " + uin);
+		regProcLogger.info("DEBUG UIN STEP 5 - identity contains UIN: " + demographicIdentity.get("UIN"));
 
 		try {
 
