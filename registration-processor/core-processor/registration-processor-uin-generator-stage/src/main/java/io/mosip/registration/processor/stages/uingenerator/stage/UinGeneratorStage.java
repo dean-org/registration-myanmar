@@ -259,16 +259,37 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 				String uinField = fieldMap.get(utility.getMappingJsonValue(MappingJsonConstants.UIN, MappingJsonConstants.IDENTITY));
 
 				JSONObject demographicIdentity = new JSONObject();
+				String regType = object.getReg_type();
+				regProcLogger.info("DEBUG CHECK 1 - Raw Registration Type: [" + regType + "]");
+				regProcLogger.info("DEBUG CHECK 2 - Expected Type: [" + RegistrationType.UPDATE.toString() + "]");
+				regProcLogger.info("DEBUG CHECK 3 - Equals Ignore Case? " +
+						RegistrationType.UPDATE.toString().equalsIgnoreCase(regType));
+				regProcLogger.info("DEBUG CHECK 4 - Trimmed Equals? " +
+						RegistrationType.UPDATE.toString().equalsIgnoreCase(regType != null ? regType.trim() : null));
+				regProcLogger.info("DEBUG CHECK 5 - uinField value: [" + uinField + "]");
+				regProcLogger.info("DEBUG CHECK 6 - isEmpty(uinField): " + StringUtils.isEmpty(uinField));
+				regProcLogger.info("DEBUG CHECK 7 - equals 'null'? " + "null".equalsIgnoreCase(uinField));
+				boolean condition1 = (StringUtils.isEmpty(uinField) || "null".equalsIgnoreCase(uinField));
+				boolean condition2 = RegistrationType.UPDATE.toString().equalsIgnoreCase(regType);
+				regProcLogger.info("DEBUG FINAL CONDITION 1 (uin empty): " + condition1);
+				regProcLogger.info("DEBUG FINAL CONDITION 2 (reg type match): " + condition2);
 				regProcLogger.info("Registration Type: " + object.getReg_type());
-				if ((StringUtils.isEmpty(uinField) || uinField.equalsIgnoreCase("null"))
-						&& (RegistrationType.UPDATE.toString().equalsIgnoreCase(object.getReg_type()))){
+				if (condition1 && condition2) {
+					regProcLogger.info("DEBUG ENTERED UID→UIN BLOCK");
 					String handleField = fieldMap.get(MappingJsonConstants.UID);
-					if (StringUtils.isNotEmpty(handleField) && !handleField.equalsIgnoreCase("null")) {
+					regProcLogger.info("DEBUG HANDLE FIELD (UID): " + handleField);
+					if (StringUtils.isNotEmpty(handleField) && !"null".equalsIgnoreCase(handleField)) {
+						regProcLogger.info("DEBUG CALLING IDREPO WITH UID: " + handleField);
 						JSONObject jsonObject = utility.getIdentityJSONObjectByHandle(handleField);
+						regProcLogger.info("DEBUG IDREPO RESPONSE: " + jsonObject);
 						uinField = JsonUtil.getJSONValue(jsonObject, "UIN");
+						regProcLogger.info("DEBUG EXTRACTED UIN FROM IDREPO: " + uinField);
 						demographicIdentity.put("UIN", uinField);
-						regProcLogger.info("Fetched UIN from IDRepo using UID:" + uinField);
+					} else {
+						regProcLogger.warn("DEBUG UID HANDLE IS EMPTY OR NULL");
 					}
+				} else {
+					regProcLogger.warn("DEBUG BLOCK SKIPPED - condition1=" + condition1 + ", condition2=" + condition2);
 				}
 				demographicIdentity.put(MappingJsonConstants.IDSCHEMA_VERSION, convertIdschemaToDouble ? Double.valueOf(schemaVersion) : schemaVersion);
 
