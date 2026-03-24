@@ -3,6 +3,7 @@ package io.mosip.registration.processor.packet.manager.idreposervice;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.assertj.core.util.Lists;
 import org.json.simple.JSONObject;
