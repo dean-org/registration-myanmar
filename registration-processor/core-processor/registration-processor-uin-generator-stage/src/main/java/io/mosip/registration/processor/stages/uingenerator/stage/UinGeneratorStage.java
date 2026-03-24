@@ -547,9 +547,24 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		idRequestDTO.setVersion(UINConstants.idRepoApiVersion);
 		idRequestDTO.setMetadata(null);
 
+		regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				id, "UinGeneratorStage::sendIdRepoWithUin()::INFO - Sending request to IDRepo for registrationId: " + id);
+		regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				id, "UinGeneratorStage::sendIdRepoWithUin()::INFO - Full request being sent to IDRepo: " + idRequestDTO.toString());
+		regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				id, "UinGeneratorStage::sendIdRepoWithUin()::INFO - Demographic identity being sent: " + demographicIdentity.toJSONString());
+
+
 		try {
 
 			result = idrepoDraftService.idrepoUpdateDraft(id, null, idRequestDTO);
+			if (result != null) {
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						id, "UinGeneratorStage::sendIdRepoWithUin()::INFO - Response received from IDRepo: " + result.toString());
+			} else {
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						id, "UinGeneratorStage::sendIdRepoWithUin()::INFO - Null response received from IDRepo");
+			}
 
 		} catch (ApisResourceAccessException e) {
 			regProcLogger.error("Execption occured updating draft for id " + id, e);
@@ -655,6 +670,13 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		// ADDED: Log the start of the Update process
 		regProcLogger.info("UinGeneratorStage::uinUpdate() - Starting update flow for RID: {} with UIN: {}", regId, uin);
 		List<Documents> documentInfo = getAllDocumentsByRegId(regId, process, demographicIdentity);
+		regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				regId, "UinGeneratorStage::uinUpdate()::INFO - Sending UPDATE request to IDRepo for registrationId: " + regId);
+		regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				regId, "UinGeneratorStage::uinUpdate()::INFO - Demographic identity being sent to IDRepo: " + demographicIdentity.toJSONString());
+		regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				regId, "UinGeneratorStage::uinUpdate()::INFO - Documents being sent to IDRepo count: " + (documentInfo != null ? documentInfo.size() : 0));
+		
 		result = idRepoRequestBuilder(regId, uin, RegistrationType.ACTIVATED.toString().toUpperCase(), documentInfo,
 				demographicIdentity);
 		if (null!=result && isIdResponseNotNull(result)) {
@@ -718,6 +740,9 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 		idRequestDTO.setRequesttime(DateUtils.getUTCCurrentDateTimeString());
 		idRequestDTO.setVersion(UINConstants.idRepoApiVersion);
 
+		regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+				id, "UinGeneratorStage::idRepoRequestBuilder()::INFO - Full request being sent to IDRepo: " + idRequestDTO.toString());
+
 
 		// ADDED: Log the full Request Payload
 		try {
@@ -731,7 +756,11 @@ public class UinGeneratorStage extends MosipVerticleAPIManager {
 			idResponseDto = idrepoDraftService.idrepoUpdateDraft(id, uin, idRequestDTO);
 			// ADDED: Log the Response Received
 			if (idResponseDto != null) {
-				regProcLogger.info("UinGeneratorStage::idRepoRequestBuilder() - Received Response from IDRepo for RID: {}: {}", id, mapper.writeValueAsString(idResponseDto));
+			regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+					id, "UinGeneratorStage::idRepoRequestBuilder()::INFO - Response received from IDRepo: " + idResponseDto.toString());
+			} else {
+				regProcLogger.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.REGISTRATIONID.toString(),
+						id, "UinGeneratorStage::idRepoRequestBuilder()::INFO - Null response received from IDRepo");
 			}
 		} catch (ApisResourceAccessException e) {
 			regProcLogger.error("Execption occured updating draft for id " + id, e);
