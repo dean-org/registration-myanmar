@@ -83,6 +83,17 @@ public class IdrepoDraftService {
         regProcLogger.debug("idrepoUpdateDraft entry " + id);
         if (!idrepoHasDraft(id)) {
             regProcLogger.info("Existing draft not found for id " + id + ". Creating new draft.");
+			Map<String, Object> identity = (Map<String, Object>) idRequestDto.getRequest().getIdentity();
+            List<Map<String, Object>> userServiceTypes = (List<Map<String, Object>>) identity.get("userServiceType");
+            if (userServiceTypes!=null && !userServiceTypes.isEmpty() && "Deactivated".equalsIgnoreCase((String) userServiceTypes.get(0).get("value"))) {
+                String uid = (String) identity.get("UID");
+                if (uid != null && uid.matches("\\d{10}")) {
+                    uin = uid;
+                    regProcLogger.info("Using UID as UIN: " + uin);
+                } else {
+                    regProcLogger.warn("UID is missing or invalid. Existing UIN will be used: " + uin);
+                }
+            }
             idrepoCreateDraft(id, uin);
         } else {
             regProcLogger.info("Existing draft found for id " + id + ". Updating uin in demographic identity.");
